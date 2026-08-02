@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   title: "Pidato Duo Sabah 2026",
   description: "Dashboard rasmi penghantaran dan tayangan video Pertandingan Pidato Duo Sabah 2026.",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/logo-pidato-duo.jpg",
+    shortcut: "/logo-pidato-duo.jpg",
   },
 };
 

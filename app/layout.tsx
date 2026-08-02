@@ -1,0 +1,33 @@
+import type { Metadata } from "next";
+import { Geist } from "next/font/google";
+import "./globals.css";
+import { SiteHeader } from "@/components/site-header";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Pidato Duo Sabah 2026",
+  description: "Dashboard rasmi penghantaran dan tayangan video Pertandingan Pidato Duo Sabah 2026.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="ms">
+      <body className={`${geistSans.variable} antialiased`}>
+        <SiteHeader />
+        {children}
+      </body>
+    </html>
+  );
+}

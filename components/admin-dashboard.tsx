@@ -1,8 +1,109 @@
-"use client";import {FormEvent,useEffect,useMemo,useState} from "react";import {api,configured,signIn,type Submission} from "@/lib/supabase";import {Icon} from "./icons";
-const statuses=["Menunggu Semakan","Lengkap","Tidak Lengkap","Diluluskan","Ditolak"];
-export function AdminDashboard(){const [token,setToken]=useState("");const [items,setItems]=useState<Submission[]>([]);const [q,setQ]=useState("");const [error,setError]=useState("");const [busy,setBusy]=useState(false);useEffect(()=>{const t=sessionStorage.getItem("pidato_admin");if(t){setToken(t);load(t)}},[]);async function load(t=token){try{setItems(await api("/rest/v1/submissions?select=*&order=created_at.desc",{},t))}catch{setError("Sesi tamat atau akaun ini bukan pentadbir.")}}
- async function login(e:FormEvent<HTMLFormElement>){e.preventDefault();if(!configured()){setError("Tetapan Supabase belum dilengkapkan.");return}setBusy(true);setError("");const fd=new FormData(e.currentTarget);try{const r=await signIn(String(fd.get("email")),String(fd.get("password")));sessionStorage.setItem("pidato_admin",r.access_token);setToken(r.access_token);await load(r.access_token)}catch{setError("E-mel atau kata laluan tidak sah.")}finally{setBusy(false)}}
- async function status(id:string,value:string){try{await api(`/rest/v1/submissions?id=eq.${id}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:value})},token);setItems(x=>x.map(i=>i.id===id?{...i,status:value}:i))}catch{setError("Status tidak dapat dikemas kini.")}}
- async function remove(id:string){if(!confirm("Padam penyertaan ini? Tindakan ini tidak boleh dibatalkan."))return;try{await api(`/rest/v1/submissions?id=eq.${id}`,{method:"DELETE"},token);setItems(x=>x.filter(i=>i.id!==id))}catch{setError("Penyertaan tidak dapat dipadam.")}}
- if(!token)return <section className="grid min-h-[calc(100vh-72px)] place-items-center bg-[#062b3e] px-4 py-12"><form onSubmit={login} className="card w-full max-w-md p-8"><span className="grid h-13 w-13 place-items-center rounded-2xl bg-cyan-50 text-cyan-700"><Icon name="shield"/></span><p className="eyebrow mt-7">AKSES URUS SETIA</p><h1 className="mt-2 text-3xl font-black">Log masuk admin</h1><p className="mt-2 text-sm leading-6 text-slate-500">Gunakan akaun pentadbir yang didaftarkan dalam Supabase.</p><div className="mt-7 space-y-4"><label><span className="label">E-mel</span><input className="field" type="email" name="email" required/></label><label><span className="label">Kata laluan</span><input className="field" type="password" name="password" required/></label></div>{error&&<p className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}<button disabled={busy} className="btn btn-primary mt-5 w-full">{busy?"Menyemak…":"Log masuk"}<Icon name="arrow"/></button></form></section>;
- const shown=useMemo(()=>items.filter(x=>[x.reference_no,x.school_name,x.participant1_name,x.participant2_name,x.district].join(" ").toLowerCase().includes(q.toLowerCase())),[items,q]);return <section className="shell py-10"><div className="flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p className="eyebrow">PANEL URUS SETIA</p><h1 className="mt-2 text-4xl font-black tracking-tight">Semakan penyertaan</h1><p className="mt-2 text-slate-500">{items.length} penyertaan direkodkan</p></div><button className="btn btn-light" onClick={()=>{sessionStorage.removeItem("pidato_admin");setToken("")}}>Log keluar</button></div><div className="card mt-8 p-4"><label className="relative block"><Icon name="search" className="absolute left-4 top-3.5 h-5 w-5 text-slate-400"/><input className="field pl-12" value={q} onChange={e=>setQ(e.target.value)} placeholder="Cari nombor rujukan, sekolah, peserta atau daerah…"/></label></div>{error&&<p className="mt-4 rounded-xl bg-red-50 p-3 font-bold text-red-700">{error}</p>}<div className="mt-6 space-y-4">{shown.map(x=><article className="card p-5" key={x.id}><div className="grid gap-5 xl:grid-cols-[1.2fr_.8fr_1fr_auto]"><div><span className="text-xs font-black text-cyan-700">{x.reference_no}</span><h2 className="mt-1 text-lg font-black">{x.school_name}</h2><p className="mt-1 text-sm text-slate-500">{x.district} · {new Intl.DateTimeFormat("ms-MY").format(new Date(x.created_at))}</p></div><div className="text-sm leading-6 text-slate-600"><b className="block text-slate-800">{x.participant1_name}</b><b className="block text-slate-800">{x.participant2_name}</b><span>Guru: {x.teacher_name}</span></div><div className="flex flex-wrap items-start gap-2">{[[x.participant1_birth_cert,"Beranak 1"],[x.participant1_parent_form,"Ibu bapa 1"],[x.participant1_media_form,"Media 1"],[x.participant2_birth_cert,"Beranak 2"],[x.participant2_parent_form,"Ibu bapa 2"],[x.participant2_media_form,"Media 2"],[x.video_url,"Video"]].map(([url,label])=><a key={label} href={url} target="_blank" rel="noreferrer" className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-bold text-slate-600 no-underline hover:bg-cyan-50 hover:text-cyan-700">{label}</a>)}</div><div className="flex items-center gap-2"><select aria-label="Status" className="field min-w-44 py-2" value={x.status} onChange={e=>status(x.id,e.target.value)}>{statuses.map(s=><option key={s}>{s}</option>)}</select><button aria-label="Padam" className="grid h-10 w-10 place-items-center rounded-xl border border-red-100 bg-red-50 text-red-600" onClick={()=>remove(x.id)}><Icon name="trash"/></button></div></div></article>)}{shown.length===0&&<div className="card py-16 text-center text-slate-500">Tiada penyertaan ditemui.</div>}</div></section>}
+"use client";
+
+import { FormEvent, useEffect, useState } from "react";
+import { Icon } from "./icons";
+
+const ADMIN_CREDENTIAL_HASH = "e838a10cb1723f2dcf742e9d068ac80e75c58de2b09a6b2e5efa51f201d33ce7";
+const ADMIN_SESSION = "pidato_admin_google_sheet";
+const GOOGLE_SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/1waADxUkNfe2N-KqwmlOUTf4iGtYcQu-bMl9Y2IOsGTM/edit";
+
+export function AdminDashboard() {
+  const [signedIn, setSignedIn] = useState(false);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setSignedIn(sessionStorage.getItem(ADMIN_SESSION) === "active");
+  }, []);
+
+  async function login(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    const form = new FormData(event.currentTarget);
+    const username = String(form.get("username") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+
+    const credentialBytes = new TextEncoder().encode(`${username}:${password}`);
+    const digest = await crypto.subtle.digest("SHA-256", credentialBytes);
+    const credentialHash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+
+    if (credentialHash === ADMIN_CREDENTIAL_HASH) {
+      sessionStorage.setItem(ADMIN_SESSION, "active");
+      setSignedIn(true);
+    } else {
+      setError("Nama pengguna atau kata laluan tidak sah.");
+    }
+    setBusy(false);
+  }
+
+  function logout() {
+    sessionStorage.removeItem(ADMIN_SESSION);
+    setSignedIn(false);
+  }
+
+  if (!signedIn) {
+    return (
+      <section className="grid min-h-[calc(100vh-80px)] place-items-center bg-[#062b3e] px-4 py-12">
+        <form onSubmit={login} className="card w-full max-w-md p-8">
+          <span className="grid h-13 w-13 place-items-center rounded-2xl bg-cyan-50 text-cyan-700">
+            <Icon name="shield" />
+          </span>
+          <p className="eyebrow mt-7">AKSES URUS SETIA</p>
+          <h1 className="mt-2 text-3xl font-black">Log masuk admin</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Log masuk untuk membuka rekod rasmi dalam Google Sheet urus setia.
+          </p>
+          <div className="mt-7 space-y-4">
+            <label>
+              <span className="label">Nama pengguna</span>
+              <input className="field" name="username" autoComplete="username" required />
+            </label>
+            <label>
+              <span className="label">Kata laluan</span>
+              <input className="field" type="password" name="password" autoComplete="current-password" required />
+            </label>
+          </div>
+          {error && <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}
+          <button disabled={busy} className="btn btn-primary mt-5 w-full">
+            {busy ? "Menyemak…" : "Log masuk"}<Icon name="arrow" />
+          </button>
+        </form>
+      </section>
+    );
+  }
+
+  return (
+    <section className="shell py-10">
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <p className="eyebrow">PANEL URUS SETIA</p>
+          <h1 className="mt-2 text-4xl font-black tracking-tight">Rekod Google Sheet</h1>
+          <p className="mt-2 text-slate-500">Disambungkan kepada makmal.11-7200@moe-dl.edu.my</p>
+        </div>
+        <button className="btn btn-light" onClick={logout}>Log keluar</button>
+      </div>
+
+      <div className="card mt-8 overflow-hidden p-8 md:p-10">
+        <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-cyan-50 text-cyan-700">
+              <Icon name="shield" />
+            </span>
+            <h2 className="mt-5 text-2xl font-black">Template Pidato Duo Sabah 2026</h2>
+            <p className="mt-2 max-w-2xl leading-7 text-slate-600">
+              Semak penyertaan, kemas kini status, buka pautan dokumen dan urus catatan terus dalam Google Sheet rasmi.
+            </p>
+            <p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm font-semibold text-amber-900">
+              Pastikan Google dibuka menggunakan akaun makmal.11-7200@moe-dl.edu.my untuk akses penyuntingan.
+            </p>
+          </div>
+          <a className="btn btn-primary min-w-52" href={GOOGLE_SHEET_URL} target="_blank" rel="noreferrer">
+            Buka Google Sheet <Icon name="arrow" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}

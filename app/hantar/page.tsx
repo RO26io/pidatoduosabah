@@ -1,7 +1,7 @@
 import { PageHero } from "@/components/page-hero";
 
 const GOOGLE_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSdG6edDZSUJj9YnG8E-uoNIUHr5syWsPcTjjY2WpWFdO4WO0g/viewform";
+  "https://docs.google.com/forms/d/e/1FAIpQLSdG6edDZSUJj9YnG8E-uoNIUHr5syWsPcTjjY2WpWFdO4WO0g/viewform?usp=dialog";
 
 export default function Hantar() {
   return (

@@ -3,7 +3,19 @@
 :root { --ink:#102a43; --muted:#627d98; --navy:#082f49; --cyan:#0891b2; --gold:#f59e0b; }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; }
-body { margin:0; background:#f4f8fb; color:var(--ink); font-family:var(--font-geist-sans),Arial,sans-serif; }
+body {
+  margin:0;
+  background-color:#f4f8fb;
+  background-image:
+    linear-gradient(rgba(244,248,251,.70),rgba(244,248,251,.70)),
+    url("/logo-pidato-duo.jpg");
+  background-position:center;
+  background-repeat:no-repeat;
+  background-size:min(520px,62vw) auto;
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:var(--font-geist-sans),Arial,sans-serif;
+}
 button,a,input,select { -webkit-tap-highlight-color:transparent; }
 .shell { width:min(1180px,calc(100% - 32px)); margin-inline:auto; }
 .glass { background:rgba(255,255,255,.82); backdrop-filter:blur(18px); border:1px solid rgba(255,255,255,.75); }
@@ -20,5 +32,8 @@ button,a,input,select { -webkit-tap-highlight-color:transparent; }
 .section-title { font-size:clamp(1.7rem,4vw,2.7rem); letter-spacing:-.04em; line-height:1.08; font-weight:850; }
 .fade-up { animation:fadeUp .65s ease both; }
 @keyframes fadeUp { from { opacity:0; transform:translateY(18px) } }
-@media(max-width:640px){ .shell{width:min(100% - 22px,1180px)} .card{border-radius:18px} }
-
+@media(max-width:640px){
+  body { background-size:82vw auto; }
+  .shell{width:min(100% - 22px,1180px)}
+  .card{border-radius:18px}
+}

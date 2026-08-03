@@ -15,12 +15,12 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
-      <div className="shell flex h-18 items-center justify-between gap-5">
+      <div className="shell flex h-20 items-center justify-between gap-5">
         <Link href="/" className="flex items-center gap-3 no-underline">
           <img
             src="/logo-pidato-duo.jpg"
             alt="Logo Pidato Duo Negeri Sabah"
-            className="h-11 w-11 rounded-full border-2 border-amber-300 object-cover shadow-sm"
+            className="h-14 w-14 rounded-full border-2 border-amber-300 object-cover shadow-md"
           />
           <span>
             <b className="block text-[15px] leading-none text-slate-900">PIDATO DUO</b>

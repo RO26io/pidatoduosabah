@@ -86,7 +86,6 @@ export function VideoGallery() {
           (item) =>
             (district === "Semua Daerah" || item.district === district) &&
             [
-              item.school_name,
               item.participant1_name,
               item.participant2_name,
               item.district,
@@ -99,7 +98,7 @@ export function VideoGallery() {
           sort === "old"
             ? +new Date(a.created_at) - +new Date(b.created_at)
             : sort === "az"
-              ? a.school_name.localeCompare(b.school_name)
+              ? a.participant1_name.localeCompare(b.participant1_name)
               : +new Date(b.created_at) - +new Date(a.created_at),
         ),
     [items, q, district, sort],
@@ -115,7 +114,7 @@ export function VideoGallery() {
           />
           <input
             className="field pl-12"
-            placeholder="Cari sekolah, peserta atau daerah…"
+            placeholder="Cari peserta atau daerah…"
             value={q}
             onChange={(event) => setQ(event.target.value)}
           />
@@ -136,7 +135,7 @@ export function VideoGallery() {
         >
           <option value="new">Terbaharu</option>
           <option value="old">Terlama</option>
-          <option value="az">Nama sekolah A–Z</option>
+          <option value="az">Nama pemidato A–Z</option>
         </select>
       </div>
 
@@ -167,13 +166,13 @@ export function VideoGallery() {
                     <iframe
                       className="h-full w-full border-0"
                       src={previewUrl}
-                      title={`Video ${item.school_name}`}
+                      title={`Video peserta ${item.district}`}
                       allow="autoplay; fullscreen"
                       allowFullScreen
                     />
                   ) : item.video_url ? (
                     <video
-                      className="h-full-w-full object-cover"
+                      className="h-full w-full object-cover"
                       controls
                       preload="metadata"
                       src={item.video_url}
@@ -190,9 +189,6 @@ export function VideoGallery() {
                   </span>
                 </div>
                 <div className="p-6">
-                  <h2 className="text-xl font-black leading-tight">
-                    {item.school_name}
-                  </h2>
                   <div className="mt-4 space-y-2 text-sm text-slate-500">
                     <p>
                       <b className="text-slate-700">Pemidato:</b>{" "}
